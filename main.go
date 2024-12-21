@@ -58,12 +58,13 @@ func main() {
 	}
 
 	doc.Find("div[data-category='ctg00'] ul.news_ul li").Each(func(i int, s *goquery.Selection) {
-		title := s.Find("a").Text()
-		link, _ := s.Find("a").Attr("href")
+		a := s.Find("a")
 
-		link = html.UnescapeString(link)
+		title := strings.TrimSpace(a.Find(".news__txt").Text())
+		description := title
 
-		parsedLink, err := url.Parse(link)
+		link, _ := a.Attr("href")
+		parsedLink, err := url.Parse(html.UnescapeString(link))
 		if err != nil {
 			log.Printf("Failed to parse link: %v", err)
 			return
@@ -76,7 +77,7 @@ func main() {
 			absoluteURL = baseURL.ResolveReference(parsedLink).String()
 		}
 
-		dateTag := s.Find("a").Find(".news__date")
+		dateTag := a.Find(".news__date")
 
 		categoryTag := dateTag.Find(".news__ctg")
 		category := categoryTag.Text()
@@ -87,17 +88,14 @@ func main() {
 			log.Printf("Failed to load location: %v", err)
 		}
 
-		date := dateTag.Text()
-		parsedDate, err := time.Parse("2006.01.02", date)
+		parsedDate, err := time.Parse("2006.01.02", dateTag.Text())
 		if err != nil {
 			log.Printf("Failed to parse date: %v", err)
 		}
 		pubDate := parsedDate.In(jst).Format(time.RFC1123)
 
-		description := strings.TrimSpace(s.Find(".news__txt").Text())
-
 		item := Item{
-			Title:       title,
+			Title:       fmt.Sprintf("%s [%s] %s", dateTag.Text(), category, title),
 			Link:        absoluteURL,
 			Category:    category,
 			Description: description,
