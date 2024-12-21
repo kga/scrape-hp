@@ -1,0 +1,39 @@
+name: Generate and Publish RSS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+
+    - name: Build and run main.go
+      run: |
+        go build -o main main.go
+        ./main > rss.xml
+
+    - name: Upload RSS artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./rss.xml
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@v4
