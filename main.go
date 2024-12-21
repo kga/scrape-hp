@@ -29,6 +29,8 @@ type Item struct {
 	Title       string `xml:"title"`
 	Link        string `xml:"link"`
 	Description string `xml:"description"`
+	Category    string `xml:"category"`
+	PubDate     string `xml:"pubDate"`
 }
 
 func main() {
@@ -54,14 +56,12 @@ func main() {
 		log.Fatalf("Failed to parse base URL: %v", err)
 	}
 
-	doc.Find("div[data-category='ctg00'] ul.news_ul:not(.animated) li").Each(func(i int, s *goquery.Selection) {
+	doc.Find("div[data-category='ctg00'] ul.news_ul li").Each(func(i int, s *goquery.Selection) {
 		title := s.Find("a").Text()
 		link, _ := s.Find("a").Attr("href")
 
-		// HTML 実体参照をデコード
 		link = html.UnescapeString(link)
 
-		// リンクが絶対URLかどうかをチェック
 		parsedLink, err := url.Parse(link)
 		if err != nil {
 			log.Printf("Failed to parse link: %v", err)
@@ -75,12 +75,24 @@ func main() {
 			absoluteURL = baseURL.ResolveReference(parsedLink).String()
 		}
 
-		description := strings.TrimSpace(s.Find(".news_text").Text())
+		dateTag := s.Find("a").Find(".news__date")
+
+		print(fmt.Sprintf("dateTag: %v", dateTag.Text()))
+
+		categoryTag := dateTag.Find(".news__ctg")
+		category := categoryTag.Text()
+		categoryTag.Remove()
+
+		date := dateTag.Text()
+
+		description := strings.TrimSpace(s.Find(".news__txt").Text())
 
 		item := Item{
 			Title:       title,
 			Link:        absoluteURL,
+			Category:    category,
 			Description: description,
+			PubDate:     date,
 		}
 		items = append(items, item)
 	})
