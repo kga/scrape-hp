@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -77,13 +78,21 @@ func main() {
 
 		dateTag := s.Find("a").Find(".news__date")
 
-		print(fmt.Sprintf("dateTag: %v", dateTag.Text()))
-
 		categoryTag := dateTag.Find(".news__ctg")
 		category := categoryTag.Text()
 		categoryTag.Remove()
 
+		jst, err := time.LoadLocation("Asia/Tokyo")
+		if err != nil {
+			log.Printf("Failed to load location: %v", err)
+		}
+
 		date := dateTag.Text()
+		parsedDate, err := time.Parse("2006.01.02", date)
+		if err != nil {
+			log.Printf("Failed to parse date: %v", err)
+		}
+		pubDate := parsedDate.In(jst).Format(time.RFC1123)
 
 		description := strings.TrimSpace(s.Find(".news__txt").Text())
 
@@ -92,7 +101,7 @@ func main() {
 			Link:        absoluteURL,
 			Category:    category,
 			Description: description,
-			PubDate:     date,
+			PubDate:     pubDate,
 		}
 		items = append(items, item)
 	})
