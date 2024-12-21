@@ -20,12 +20,12 @@ jobs:
     - name: Build and run main.go
       run: |
         go build -o main main.go
-        ./main > rss.xml
+        ./main > public/rss.xml
 
     - name: Upload RSS artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: ./rss.xml
+        path: ./public/
 
   deploy:
     runs-on: ubuntu-latest
