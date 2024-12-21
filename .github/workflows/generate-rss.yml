@@ -24,7 +24,7 @@ jobs:
       - name: Build and run main.go
         run: |
           go build -o main main.go
-          ./main > public/rss.xml
+          ./main > public/helloproject-all.xml
 
       - name: Upload RSS artifact
         uses: actions/upload-pages-artifact@v3
