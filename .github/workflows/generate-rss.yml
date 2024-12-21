@@ -16,6 +16,8 @@ jobs:
 
     - name: Set up Go
       uses: actions/setup-go@v5
+      with:
+        go-version-file: "go.mod"
 
     - name: Build and run main.go
       run: |
@@ -33,7 +35,11 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
     - name: Deploy to GitHub Pages
+      id: deployment
       uses: actions/deploy-pages@v4
